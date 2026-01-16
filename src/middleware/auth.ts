@@ -1,14 +1,57 @@
-import { Request , NextFunction } from "express";
-import jwt from "jsonwebtoken"
-import dotenv from "dotenv"
+import type { Request, NextFunction, Response } from "express";
+import type { AuthRequest } from "../types/index.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import type { TokenPayload } from "../types/index.js";
+import { errorResponse } from "../utils/ApiResponse.js";
 
 dotenv.config();
 
-export const authenticate = (req : Request) => {
-    const token = req.headers.authorization;
-    if(!token){
-        return "error Response"
-    };
-    const decoded = jwt.verify(token , process.env.JWT_TOKEN)
-    req.user = 
-}
+export const authenticate = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return errorResponse(res, "Token is not found", 404);
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_TOKEN!) as TokenPayload;
+    // ! means that trust me JWT_TOKEN is not undefined it will be string and present at the time of compilation
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return errorResponse(res, "Server Error while decoding the token", 501);
+  }
+};
+
+export const teacherOnly = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const user: TokenPayload = req.user!;
+  if (!user) {
+    return errorResponse(res, "User not found", 404);
+  }
+  if (user.role != "teacher") {
+    return errorResponse(res, "Not Authorized. Only Teacher can Access", 401);
+  }
+  next();
+};
+
+export const studentOnly = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const user: TokenPayload = req.user!;
+  if (!user) {
+    return errorResponse(res, "User not found", 404);
+  }
+  if (user.role != "student") {
+    return errorResponse(res, "Not Authorized. Only Student can Access", 401);
+  }
+  next();
+};
