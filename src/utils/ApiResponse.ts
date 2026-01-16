@@ -1,0 +1,4 @@
+class ApiResponse{
+    constructor(statusCode){
+}
+}
