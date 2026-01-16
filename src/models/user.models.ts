@@ -11,9 +11,9 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.pre("save", async function () {
-  if (!this.isModified("password") || !this.password) return; // this ensures that password always exist before reaching to the hasing portion 
-  this.password = await bcrypt.hash(this.password, 10);
-});
+// UserSchema.pre("save", async function () {
+//   if (!this.isModified("password") || !this.password) return; // this ensures that password always exist before reaching to the hasing portion 
+//   this.password = await bcrypt.hash(this.password, 10);
+// });
 
 export const User = mongoose.model("User", UserSchema);

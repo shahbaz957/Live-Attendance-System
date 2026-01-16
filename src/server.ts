@@ -1,5 +1,17 @@
 import express from "express"
-
+import { connectDB } from "./config/db.js";
 const app = express();
 
-app
+app.use(express.json({limit : "16kb"}))
+app.use(express.urlencoded({extended : true , limit : "16kb"}))
+
+
+
+connectDB()
+.then(() => {
+    app.listen(process.env.PORT! , () => console.log("Server is listening at PORT 8000"))
+})
+.catch((err) => {
+    console.log("Database is not Connected ..... ERROR");
+    console.log(err)
+})

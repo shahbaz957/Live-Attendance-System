@@ -17,6 +17,6 @@ export const successResponse = <T>(res : Response , statusCode : number , data :
     const response : ApiResponse<T> = {
         success : true,
         data,
-    }
+    } // T is the typed response that it will be filled/infer by the TS on its own
     return res.status(statusCode).json(response)
 }
