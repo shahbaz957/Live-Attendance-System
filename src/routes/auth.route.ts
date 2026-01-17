@@ -90,3 +90,5 @@ router.get("/me", authenticate, async (req: AuthRequest, res) => {
     return errorResponse(res, "Server Error Occured", 501);
   }
 });
+
+export default router

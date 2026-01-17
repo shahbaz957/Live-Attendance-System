@@ -12,7 +12,8 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers.authorization;
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
   if (!token) {
     return errorResponse(res, "Unauthorized, token missing or invalid", 401);
   }
@@ -22,7 +23,7 @@ export const authenticate = (
     req.user = decoded;
     next();
   } catch (error) {
-    return errorResponse(res, "Server Error while decoding the token", 501);
+    return errorResponse(res, "unauthorized error", 401);
   }
 };
 
@@ -51,7 +52,7 @@ export const studentOnly = (
     return errorResponse(res, "User not found", 404);
   }
   if (user.role != "student") {
-    return errorResponse(res, "Forbidden, teacher access required", 403);
+    return errorResponse(res, "Forbidden, student access required", 403);
   }
   next();
 };

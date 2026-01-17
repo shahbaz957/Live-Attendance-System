@@ -84,3 +84,5 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+export default router
+
