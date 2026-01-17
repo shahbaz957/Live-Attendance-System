@@ -37,7 +37,7 @@ router.post(
       const classId = req.params.id;
       const fetchedClass = await Class.findById(classId);
       if (!fetchedClass?.teacherId?.equals(user._id)) {
-        return errorResponse(res, "Teacher is not the owner of the Class", 401);
+        return errorResponse(res, "Forbidden, not class Teacher", 403);
       }
       const studentId = validated.studentId;
       if (
@@ -64,7 +64,7 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
     const user = req.user;
     const fetchedClass = await Class.findById(classId).populate('teacherId').populate('studentIds');
     if (!fetchedClass) {
-      return errorResponse(res, "Wrong Class ID", 404);
+      return errorResponse(res, "class not found", 404);
     }
     if (
       user?.role == "teacher" &&

@@ -14,7 +14,7 @@ export const authenticate = (
 ) => {
   const token = req.headers.authorization;
   if (!token) {
-    return errorResponse(res, "Token is not found", 404);
+    return errorResponse(res, "Unauthorized, token missing or invalid", 401);
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_TOKEN!) as TokenPayload;
@@ -36,7 +36,7 @@ export const teacherOnly = (
     return errorResponse(res, "User not found", 404);
   }
   if (user.role != "teacher") {
-    return errorResponse(res, "Not Authorized. Only Teacher can Access", 401);
+    return errorResponse(res, "Forbidden, teacher access required", 403);
   }
   next();
 };
@@ -51,7 +51,7 @@ export const studentOnly = (
     return errorResponse(res, "User not found", 404);
   }
   if (user.role != "student") {
-    return errorResponse(res, "Not Authorized. Only Student can Access", 401);
+    return errorResponse(res, "Forbidden, teacher access required", 403);
   }
   next();
 };

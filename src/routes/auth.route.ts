@@ -28,7 +28,7 @@ router.post("/signup", async (req, res) => {
   } catch (error) {
     console.log("ERROR : ", error);
     if (error instanceof ZodError) {
-      return errorResponse(res, "Zod schema error occured", 400);
+      return errorResponse(res, "Invalid request schema", 400);
     }
     return errorResponse(res, "Error Occured while SigningUp", 501);
   }
@@ -62,17 +62,18 @@ router.post("/login", async (req, res) => {
     if (error instanceof ZodError) {
       return errorResponse(
         res,
-        "Zod Schema Error. ALl feilds are required",
+        "Invalid request schema",
         400
       );
     }
+    return errorResponse(res , "Internal Server Error"  , 500)
   }
 });
 router.get("/me", authenticate, async (req: AuthRequest, res) => {
   try {
     const user = req.user;
     if (!user) {
-      return errorResponse(res, "User not found in req", 404);
+      return errorResponse(res, "user not found", 404);
     }
     const fetchedUser = await User.findById(user.userId);
     if (!fetchedUser) {
