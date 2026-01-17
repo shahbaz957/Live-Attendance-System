@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 import { ZodError } from "zod";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../types/index.js";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, teacherOnly } from "../middleware/auth.js";
 
 const router = Router();
 

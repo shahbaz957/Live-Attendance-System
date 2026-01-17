@@ -21,6 +21,7 @@ export const authenticate = (
     const decoded = jwt.verify(token, process.env.JWT_TOKEN!) as TokenPayload;
     // ! means that trust me JWT_TOKEN is not undefined it will be string and present at the time of compilation
     req.user = decoded;
+    console.log("Req got the user")
     next();
   } catch (error) {
     return errorResponse(res, "unauthorized error", 401);
@@ -33,6 +34,7 @@ export const teacherOnly = (
   next: NextFunction
 ) => {
   const user: TokenPayload = req.user!;
+  console.log("i am in teacher only here the error occur")
   if (!user) {
     return errorResponse(res, "User not found", 404);
   }
@@ -48,9 +50,6 @@ export const studentOnly = (
   next: NextFunction
 ) => {
   const user: TokenPayload = req.user!;
-  if (!user) {
-    return errorResponse(res, "User not found", 404);
-  }
   if (user.role != "student") {
     return errorResponse(res, "Forbidden, student access required", 403);
   }
