@@ -9,7 +9,7 @@ const app = express();
 
 app.use(express.json({limit : "16kb"}))
 app.use(express.urlencoded({extended : true , limit : "16kb"}))
-app.use((req, res, next) => {
+app.use((req, _ , next) => {
     console.log(`📨 ${req.method} ${req.path}`);
     next();
 });
@@ -29,7 +29,6 @@ app.get("/students" , authenticate , teacherOnly ,  async (req : AuthRequest , r
         return errorResponse(res , "Server Error" , 500);
     }
 })
-
 
 connectDB()
 .then(() => {
