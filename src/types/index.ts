@@ -1,5 +1,6 @@
 import type { Request } from "express";
 import type { JwtPayload } from 'jsonwebtoken';
+import WebSocket from "ws";
 
 export interface IUser {
   _id: string;
@@ -21,6 +22,12 @@ export interface IAttendance {
   status: "present" | "absent";
 }
 
+export interface extendedWS extends WebSocket{
+  user ?: {
+    userId : string, 
+    role : string 
+  }
+}
 export interface IClass {
   _id: string;
   className: string;
@@ -36,4 +43,14 @@ export interface ApiResponse <T = any >{
     success : Boolean;
     data ?: T;
     error ?: string;
+}
+
+export interface wsData <T = any> {
+  event : string , 
+  data : T
+}
+
+export interface eventData {
+  studentId : string, 
+  status : string
 }
