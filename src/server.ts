@@ -4,8 +4,8 @@ import authRouter from "./routes/auth.route.js";
 import { authenticate, teacherOnly } from "./middleware/auth.js";
 import { User } from "./models/user.models.js";
 import { errorResponse, successResponse } from "./utils/ApiResponse.js";
-import type { AuthRequest, extendedWS } from "./types/index.js";
-import jwt from "jsonwebtoken"
+import type { AuthRequest, extendedWS, TokenPayload } from "./types/index.js";
+import jwt, { type JwtPayload } from "jsonwebtoken"
 import { ZodError } from "zod";
 import dotenv from "dotenv"
 import url from "url"
@@ -59,8 +59,12 @@ httpServer.on('upgrade' , (request , socket , head) => {
         socket.destroy();
         return;
     }
+    if (typeof token != "string"){
+        socket.destroy();
+        return;
+    }
     try {
-        const decoded = jwt.verify(token , process.env.JWT_TOKEN!);
+        const decoded = jwt.verify(token , process.env.JWT_TOKEN!) as TokenPayload;
         // now as the token is verified and decoded, its time for handshake between http and websocket server
         wss.handleUpgrade(request, socket , head , (ws : extendedWS) => {
             ws.user = {
