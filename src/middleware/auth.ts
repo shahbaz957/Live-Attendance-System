@@ -13,18 +13,23 @@ export const authenticate = (
   next: NextFunction
 ) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+   const token = authHeader?.startsWith('Bearer ') 
+    ? authHeader.slice(7)  // Remove "Bearer " prefix
+    : authHeader;  
   if (!token) {
     return errorResponse(res, "Unauthorized, token missing or invalid", 401);
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_TOKEN!) as TokenPayload;
+    if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET not defined");
+}
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
     // ! means that trust me JWT_TOKEN is not undefined it will be string and present at the time of compilation
     req.user = decoded;
     console.log("Req got the user")
     next();
   } catch (error) {
-    return errorResponse(res, "unauthorized error", 401);
+    return errorResponse(res, "Unauthorized, token missing or invalid", 401);
   }
 };
 

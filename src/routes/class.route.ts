@@ -21,7 +21,7 @@ router.post("/", authenticate, teacherOnly, async (req: AuthRequest, res) => {
     return successResponse(res, 201, newClass);
   } catch (error) {
     if (error instanceof ZodError) {
-      return errorResponse(res, "Invalid Zod Schema", 400);
+      return errorResponse(res, "Invalid request schema", 400);
     }
     return errorResponse(res, "Server Error", 500);
   }
@@ -38,7 +38,7 @@ router.post(
       const classId = req.params.id;
       const fetchedClass = await Class.findById(classId);
       if (!fetchedClass?.teacherId?.equals(user._id)) {
-        return errorResponse(res, "Forbidden, not class Teacher", 403);
+        return errorResponse(res, "Forbidden, not class teacher", 403);
       }
       const studentId = validated.studentId;
       if (
@@ -51,7 +51,7 @@ router.post(
       return successResponse(res, 200, fetchedClass);
     } catch (error) {
       if (error instanceof ZodError) {
-        return errorResponse(res, "Invalid Zod Schema", 400);
+        return errorResponse(res, "Invalid request schema", 400);
       }
       return errorResponse(res, "Server Error", 500);
     }
@@ -67,13 +67,13 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
       .populate("teacherId")
       .populate("studentIds");
     if (!fetchedClass) {
-      return errorResponse(res, "class not found", 404);
+      return errorResponse(res, "Class not found", 404);
     }
     if (
       user?.role == "teacher" &&
       user.userId.toString() != fetchedClass.teacherId?.toString()
     ) {
-      return errorResponse(res, "Not Authenticated Teacher", 401);
+      return errorResponse(res, "Forbidden, not class teacher", 403);
     }
     if (
       user?.role == "student" &&
@@ -81,7 +81,7 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
         new mongoose.Types.ObjectId(user.userId),
       )
     ) {
-      return errorResponse(res, "Not Authenticated Student", 401);
+      return errorResponse(res, "Not Authenticated Student", 403);
     }
     return successResponse(res, 200, fetchedClass);
   } catch (error) {

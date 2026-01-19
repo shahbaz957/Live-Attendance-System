@@ -13,6 +13,10 @@ export let activeSession: {
   startedAt: Date;
   attendance: Record<string, string>;
 } | null = null;
+export const clearActiveSession = () => {
+  activeSession = null;
+};
+
 
 router.post(
   "/start",
@@ -42,6 +46,9 @@ router.post(
       if (error instanceof ZodError) {
         return errorResponse(res, "Invalid request schema", 400);
       }
+      return errorResponse(res , "Error occured" , 500)
     }
   },
 );
+
+export default router

@@ -4,7 +4,8 @@ import { Class } from "../models/class.model.js";
 import { activeSession } from "../routes/attendance.route.js";
 import type { eventData, extendedWS, wsData } from "../types/index.js";
 import WebSocket from "ws";
-
+import { errorResponse } from "../utils/ApiResponse.js";
+import { clearActiveSession } from "../routes/attendance.route.js";
 export const wsReqHandler = async (
   ws: extendedWS,
   message: wsData,
@@ -17,10 +18,15 @@ export const wsReqHandler = async (
       break;
     case "TODAY_SUMMARY":
       await handleSummary(ws, clients);
+      break
     case "MY_ATTENDANCE":
       await handleMyAttendanec(ws, clients);
+      break
     case "DONE":
       await handleDone(ws, clients);
+      break
+    default : 
+
   }
 };
 
@@ -40,7 +46,8 @@ const handleAttendanceMark = async (
     );
     return;
   }
-  if (activeSession == null) {
+
+  if (activeSession == null || !activeSession) {
     ws.send(
       JSON.stringify({
         event: "ERROR",
@@ -102,7 +109,9 @@ const handleSummary = async (ws: extendedWS, clients: Set<WebSocket>) => {
   });
   total = absentCount + presCount;
   clients.forEach((client) => {
-    client.send(
+
+    if (client.readyState == WebSocket.OPEN){
+        client.send(
       JSON.stringify({
         event: "TODAY_SUMMARY",
         data: {
@@ -112,6 +121,7 @@ const handleSummary = async (ws: extendedWS, clients: Set<WebSocket>) => {
         },
       }),
     );
+    }
   });
 };
 
@@ -138,25 +148,17 @@ const handleMyAttendanec = async (ws: extendedWS, clients: Set<WebSocket>) => {
     );
     return;
   }
-  let stu_status = activeSession.attendance[ws.user?.userId!];
-  let broadCastMsg;
-  if (stu_status == null) {
-    broadCastMsg = {
-      event: "MY_ATTENDANCE",
-      data: {
-        status: "not yet updated",
-      },
-    };
-  } else {
-    broadCastMsg = {
-      event: "MY_ATTENDANCE",
-      data: {
-        status: "present",
-      },
-    };
-  }
+  const status = activeSession.attendance[ws.user.userId];
 
-  ws.send(JSON.stringify(broadCastMsg));
+  
+  ws.send(
+  JSON.stringify({
+    event: "MY_ATTENDANCE",
+    data: {
+      status: status ?? "not yet updated",
+    },
+  })
+);
 };
 
 const handleDone = async (ws: extendedWS, clients: Set<WebSocket>) => {
@@ -182,18 +184,8 @@ const handleDone = async (ws: extendedWS, clients: Set<WebSocket>) => {
     );
     return;
   }
-  if (!activeSession?.attendance) {
-    ws.send(
-      JSON.stringify({
-        event: "ERROR",
-        data: {
-          message: "No active attendance session",
-        },
-      }),
-    );
-    return;
-  }
-  const classDb = await Class.findById(activeSession.classId);
+  const session = activeSession
+  const classDb = await Class.findById(session.classId);
   if (!classDb) {
     ws.send(
       JSON.stringify({
@@ -205,21 +197,21 @@ const handleDone = async (ws: extendedWS, clients: Set<WebSocket>) => {
   }
   classDb.studentIds.forEach((stu_id) => {
     const id = stu_id.toString();
-    if (!activeSession.attendance[id]) {
-      activeSession.attendance[id] = "absent";
+    if (!session.attendance[id]) {
+      session.attendance[id] = "absent";
     }
   });
-  const attendancePromises = Object.entries(activeSession.attendance).map(
+  const attendancePromises = Object.entries(session.attendance).map(
     ([studentId, status]) =>
       Attendance.create({
-        classId: activeSession.classId,
+        classId: session.classId,
         studentId: new mongoose.Types.ObjectId(studentId),
         status,
       }),
   );
 
   await Promise.all(attendancePromises);
-  const attendanceRec = Object.values(activeSession.attendance);
+  const attendanceRec = Object.values(session.attendance);
   const presCount = attendanceRec.filter((s) => s === "present").length;
   const abCount = attendanceRec.filter((s) => s === "absent").length;
   const total = presCount + abCount;
@@ -237,4 +229,5 @@ const handleDone = async (ws: extendedWS, clients: Set<WebSocket>) => {
       client.send(JSON.stringify(broadCastMsg));
     }
   });
+  clearActiveSession()
 };

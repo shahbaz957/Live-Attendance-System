@@ -24,7 +24,13 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
       role: validated.role,
     });
-    return successResponse(res, 201, newUser);
+    const userRes = {
+      _id : newUser._id,
+      name: newUser.name,
+      email : newUser.email,
+      role : newUser.role
+    }
+    return successResponse(res, 201, userRes);
   } catch (error) {
     console.log("ERROR : ", error);
     if (error instanceof ZodError) {
@@ -52,19 +58,15 @@ router.post("/login", async (req, res) => {
         userId: user._id,
         role: user.role,
       },
-      process.env.JWT_TOKEN!,
+      process.env.JWT_SECRET!,
       {
         expiresIn: "1h",
       }
     );
-    return successResponse(res, 200, token);
+    return successResponse(res, 200, {token});
   } catch (error) {
     if (error instanceof ZodError) {
-      return errorResponse(
-        res,
-        "Invalid request schema",
-        400
-      );
+      return errorResponse(res, "Invalid request schema", 400);
     }
     return errorResponse(res , "Internal Server Error"  , 500)
   }
